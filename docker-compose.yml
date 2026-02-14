@@ -1,0 +1,51 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: contest-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: contestpass123
+      MYSQL_DATABASE: contest_platform
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: contest-backend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: contest_platform
+      DB_USER: root
+      DB_PASSWORD: contestpass123
+      JWT_SECRET: super-secret-jwt-key-change-in-production
+      JWT_EXPIRES_IN: 7d
+      DOCKER_RUNNER_IMAGE: contest-runner
+      EXECUTION_TIMEOUT: 10
+      MEMORY_LIMIT: 256m
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      # Mount host Docker socket so backend can create runner containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Run as root to access Docker socket (required for code execution)
+    user: root
+
+volumes:
+  mysql_data:
