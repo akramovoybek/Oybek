@@ -1,5 +1,5 @@
 #!/bin/bash
-
+# cd "documents/new projects/oybek"
 # Contest Platform - Full Project Startup Script
 # Starts: MySQL (Docker), Backend (Docker), Code Runner image build, Frontend (local)
 
