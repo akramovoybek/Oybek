@@ -7,7 +7,12 @@
     "start": "node src/app.js",
     "dev": "nodemon src/app.js",
     "db:sync": "node src/utils/syncDb.js",
-    "db:seed": "node seeds/seed.js"
+    "db:seed": "node seeds/seed.js",
+    "docker:up": "docker-compose up -d --build",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:seed": "./scripts/seed-db.sh",
+    "setup": "docker build -t contest-runner ./docker/runner && docker-compose up -d --build && ./scripts/seed-db.sh"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

@@ -23,30 +23,82 @@ Client (Browser)
 
 ## Quick Start
 
-### 1. Build the Python runner image
+### Option 1: Automated Setup (Recommended)
+
+Run everything with a single command:
+
+```bash
+npm run setup
+```
+
+This will:
+1. Build the Python runner image
+2. Start all Docker services
+3. Wait for MySQL to be ready
+4. Seed the database with sample data
+
+### Option 2: Manual Setup
+
+#### 1. Build the Python runner image
 
 ```bash
 docker build -t contest-runner ./docker/runner
 ```
 
-### 2. Start all services
+#### 2. Start all services
 
 ```bash
-docker-compose up --build
+docker-compose up -d --build
 ```
 
-### 3. Seed the database
+#### 3. Seed the database
 
-Once the backend is running, open a new terminal:
+Use the helper script that ensures containers are running:
+
+```bash
+npm run docker:seed
+```
+
+Or manually (only works if containers are already running):
 
 ```bash
 docker exec contest-backend node seeds/seed.js
 ```
 
-### 4. Access the platform
+#### 4. Access the platform
 
 - **Local:** http://localhost:3000
 - **LAN:** http://<your-local-ip>:3000
+
+## Common Issues
+
+### "Container is not running" error when seeding
+
+If you see this error:
+```
+Error response from daemon: container [...] is not running
+```
+
+**Solution:** Use `npm run docker:seed` instead of the direct `docker exec` command. This script automatically checks if containers are running and starts them if needed.
+
+### Containers not starting
+
+Check the logs:
+```bash
+npm run docker:logs
+```
+
+## Useful NPM Scripts
+
+| Script | Description |
+|--------|-------------|
+| `npm run setup` | Complete setup: build, start, and seed everything |
+| `npm run docker:up` | Start Docker services in detached mode |
+| `npm run docker:down` | Stop all Docker services |
+| `npm run docker:seed` | Seed database (starts containers if needed) |
+| `npm run docker:logs` | View Docker container logs |
+| `npm start` | Start backend (for development without Docker) |
+| `npm run dev` | Start backend with nodemon (auto-reload) |
 
 ## Default Accounts
 
