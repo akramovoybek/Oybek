@@ -2,6 +2,7 @@ require('dotenv').config();
 
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const sequelize = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const authenticate = require('./middleware/auth');
@@ -47,6 +48,18 @@ app.use('/api/submissions', submissionRoutes);
 app.use('/api/admin/topics', authenticate, isAdmin, adminTopicRoutes);
 app.use('/api/admin/problems', authenticate, isAdmin, adminProblemRoutes);
 app.use('/api/admin/contests', authenticate, isAdmin, adminContestRoutes);
+
+// Serve frontend static files
+const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
+app.use(express.static(frontendDist));
+
+// SPA catch-all: serve index.html for any non-API route
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) {
+    return next();
+  }
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
 
 // Error handler
 app.use(errorHandler);
