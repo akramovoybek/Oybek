@@ -23,17 +23,35 @@ Client (Browser)
 
 ## Quick Start
 
+> **Tip:** You can use `make` commands for easier setup. Run `make help` to see all available commands.
+
+### Option A: Using Makefile (Recommended)
+
+```bash
+# Complete setup in one command
+make setup
+
+# Or step by step:
+make build-runner
+make up
+make seed
+```
+
+### Option B: Using Docker Commands Directly
+
 ### 1. Build the Python runner image
 
 ```bash
-docker build -t contest-runner ./docker/runner
+DOCKER_BUILDKIT=1 docker build -t contest-runner ./docker/runner
 ```
 
 ### 2. Start all services
 
 ```bash
-docker-compose up --build
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose up --build
 ```
+
+> **Note:** Using `DOCKER_BUILDKIT=1` enables BuildKit, which provides improved performance and caching compared to the legacy builder.
 
 ### 3. Seed the database
 

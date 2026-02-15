@@ -63,6 +63,8 @@ npm --version
 
 ## Project Setup
 
+> **Quick Start:** You can use the provided `Makefile` for easier setup. Run `make help` to see all available commands. The Makefile automatically enables BuildKit.
+
 ### Step 1: Navigate to Project Directory
 
 ```bash
@@ -79,22 +81,43 @@ cp .env.example .env
 
 The default values should work fine for local development. Edit `.env` if you need to change any settings.
 
-### Step 3: Build the Python Runner Image
+### Step 3: Build and Start Services
 
-This is the Docker image that will execute submitted code in isolation:
+**Option A: Using Makefile (Recommended)**
+
+The Makefile automatically enables BuildKit and simplifies all commands:
 
 ```bash
-docker build -t contest-runner ./docker/runner
+# Complete setup in one command (builds, starts, and seeds)
+make setup
+
+# Or step by step:
+make build-runner  # Build the Python runner
+make up           # Start all services
+make seed         # Seed the database
+```
+
+To see all available commands:
+```bash
+make help
+```
+
+**Option B: Using Docker Commands Directly**
+
+Build the Python runner image (this executes submitted code in isolation):
+
+```bash
+DOCKER_BUILDKIT=1 docker build -t contest-runner ./docker/runner
 ```
 
 **For M1 Macs:** Docker will automatically build ARM64 images, which is perfect for your system.
 
-### Step 4: Start All Services
+> **Note:** Using `DOCKER_BUILDKIT=1` enables BuildKit, which provides improved build performance, better caching, and is the modern standard for Docker builds.
 
 Start the MySQL database and backend server:
 
 ```bash
-docker-compose up --build
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose up --build
 ```
 
 This will:
@@ -107,11 +130,15 @@ This will:
 - MySQL is ready for connections
 - Backend server is running on port 3000
 
-### Step 5: Seed the Database
+### Step 4: Seed the Database
 
-Open a **new terminal window** (keep the previous one running), navigate to the project directory, and run:
+If you used `make setup`, this is already done. Otherwise, open a **new terminal window** (keep the previous one running), navigate to the project directory, and run:
 
 ```bash
+# Using Makefile
+make seed
+
+# Or using Docker directly
 docker exec contest-backend node seeds/seed.js
 ```
 
@@ -121,7 +148,7 @@ This will create:
 - Sample problems with testcases
 - Sample contests
 
-### Step 6: Access the Platform
+### Step 5: Access the Platform
 
 Open your web browser and navigate to:
 
@@ -144,8 +171,8 @@ http://localhost:3000
 If you see platform warnings, you can explicitly build for ARM64:
 
 ```bash
-docker build --platform linux/arm64 -t contest-runner ./docker/runner
-docker-compose up --build --platform linux/arm64
+DOCKER_BUILDKIT=1 docker build --platform linux/arm64 -t contest-runner ./docker/runner
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose up --build
 ```
 
 ### Issue 2: Docker Socket Permission Denied
@@ -202,15 +229,25 @@ docker logs contest-mysql
 
 ## Useful Commands
 
+> **Tip:** Use `make help` to see all available Makefile commands.
+
 ### Stop All Services
 
 ```bash
+# Using Makefile
+make down
+
+# Or using Docker directly
 docker-compose down
 ```
 
 ### Stop and Remove Database Volume
 
 ```bash
+# Using Makefile
+make down-volumes
+
+# Or using Docker directly
 docker-compose down -v
 ```
 
@@ -219,24 +256,35 @@ docker-compose down -v
 ### View Logs
 
 ```bash
-# All services
-docker-compose logs -f
+# Using Makefile
+make logs              # All services
+make logs-backend     # Backend only
+make logs-mysql       # MySQL only
 
-# Specific service
-docker-compose logs -f backend
-docker-compose logs -f mysql
+# Or using Docker directly
+docker-compose logs -f         # All services
+docker-compose logs -f backend # Backend only
+docker-compose logs -f mysql   # MySQL only
 ```
 
 ### Restart Services
 
 ```bash
+# Using Makefile
+make restart
+
+# Or using Docker directly
 docker-compose restart
 ```
 
 ### Rebuild After Code Changes
 
 ```bash
-docker-compose up --build
+# Using Makefile
+make up
+
+# Or using Docker directly
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose up --build
 ```
 
 ### Access MySQL Database Directly
@@ -359,16 +407,13 @@ For issues or questions:
 If you want to start fresh:
 
 ```bash
-# Stop and remove everything
-docker-compose down -v
+# Using Makefile (easiest)
+make rebuild
 
-# Remove the runner image
-docker rmi contest-runner
-
-# Remove any dangling images
-docker system prune -a
-
-# Start from Step 3 again
-docker build -t contest-runner ./docker/runner
-docker-compose up --build
+# Or using Docker commands directly
+docker-compose down -v          # Stop and remove everything
+docker rmi contest-runner        # Remove the runner image
+docker system prune -a           # Remove any dangling images
+DOCKER_BUILDKIT=1 docker build -t contest-runner ./docker/runner  # Rebuild
+DOCKER_BUILDKIT=1 COMPOSE_DOCKER_CLI_BUILD=1 docker-compose up --build  # Start
 ```
