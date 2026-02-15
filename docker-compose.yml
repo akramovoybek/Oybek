@@ -9,7 +9,7 @@ services:
       MYSQL_ROOT_PASSWORD: contestpass123
       MYSQL_DATABASE: contest_platform
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     healthcheck:

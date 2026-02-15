@@ -160,12 +160,11 @@ If you get permission errors accessing Docker socket:
 
 ### Issue 3: Port Already in Use
 
-If port 3000 or 3306 is already in use:
+If port 3000 is already in use:
 
 **Check what's using the port:**
 ```bash
 lsof -i :3000
-lsof -i :3306
 ```
 
 **Option 1:** Stop the conflicting service
@@ -175,6 +174,8 @@ lsof -i :3306
 ports:
   - "3001:3000"  # Change 3001 to any available port
 ```
+
+**Note:** MySQL is configured to use port 3307 externally (instead of 3306) to avoid conflicts with local MySQL installations. If you need to access MySQL from your host machine, use port 3307.
 
 ### Issue 4: MySQL Connection Issues
 
@@ -241,8 +242,14 @@ docker-compose up --build
 
 ### Access MySQL Database Directly
 
+From within the Docker container:
 ```bash
 docker exec -it contest-mysql mysql -u root -pcontestpass123 contest_platform
+```
+
+From your host machine (using external port 3307):
+```bash
+mysql -h 127.0.0.1 -P 3307 -u root -pcontestpass123 contest_platform
 ```
 
 ### Run Database Seed Again
@@ -331,12 +338,14 @@ Client (Browser)
       ↓
   Express API (port 3000)
       ↓
-  MySQL Database (port 3306)
+  MySQL Database (port 3306 internal, 3307 external)
       ↓
   Submission Service
       ↓
   Docker Python Runner (isolated container)
 ```
+
+**Note:** MySQL is accessible on port 3307 from your host machine to avoid conflicts. Within the Docker network, it uses port 3306.
 
 ## Next Steps
 

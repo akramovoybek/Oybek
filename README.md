@@ -9,12 +9,14 @@ Client (Browser)
       ↓
   Express API (port 3000)
       ↓
-  MySQL Database (port 3306)
+  MySQL Database (port 3306 internal, 3307 external)
       ↓
   Submission Service
       ↓
   Docker Python Runner (isolated container)
 ```
+
+**Note:** MySQL is accessible on port 3307 from your host machine to avoid conflicts with other MySQL installations. Within the Docker network, it uses port 3306.
 
 ## Prerequisites
 
