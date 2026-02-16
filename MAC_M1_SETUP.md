@@ -47,9 +47,7 @@ Verify:
 git --version
 ```
 
-### 4. Install Node.js (Optional - only needed for local development)
-
-If you want to run the project locally without Docker:
+### 4. Install Node.js (Optional - only needed for local development without Docker)
 
 ```bash
 brew install node
@@ -91,7 +89,15 @@ docker build -t contest-runner ./docker/runner
 
 ### Step 4: Start All Services
 
-Start the MySQL database and backend server:
+**Option A: Use the startup script (recommended)**
+
+```bash
+./start.sh
+```
+
+This will build the runner image, start MySQL + Backend via Docker, and wait for everything to be ready.
+
+**Option B: Manual**
 
 ```bash
 docker-compose up --build
@@ -112,6 +118,8 @@ This will:
 Open a **new terminal window** (keep the previous one running), navigate to the project directory, and run:
 
 ```bash
+./seed.sh
+# or manually:
 docker exec contest-backend node seeds/seed.js
 ```
 
@@ -128,6 +136,8 @@ Open your web browser and navigate to:
 ```
 http://localhost:3000
 ```
+
+All pages are served directly by the Express backend using EJS templates.
 
 ## Default Login Credentials
 
@@ -160,12 +170,12 @@ If you get permission errors accessing Docker socket:
 
 ### Issue 3: Port Already in Use
 
-If port 3000 or 3306 is already in use:
+If port 3000 or 3307 is already in use:
 
 **Check what's using the port:**
 ```bash
 lsof -i :3000
-lsof -i :3306
+lsof -i :3307
 ```
 
 **Option 1:** Stop the conflicting service
@@ -205,6 +215,8 @@ docker logs contest-mysql
 ### Stop All Services
 
 ```bash
+./stop.sh
+# or manually:
 docker-compose down
 ```
 
@@ -322,6 +334,8 @@ If you prefer to run the backend locally:
    npm run dev
    ```
 
+The platform will be available at `http://localhost:3000` (backend + EJS frontend).
+
 **Note:** You still need Docker for the code runner containers.
 
 ## Architecture Overview
@@ -329,14 +343,16 @@ If you prefer to run the backend locally:
 ```
 Client (Browser)
       ↓
-  Express API (port 3000)
+  Express + EJS (port 3000)  ← server-rendered pages
       ↓
-  MySQL Database (port 3306)
+  MySQL Database (port 3306, host port 3307)
       ↓
   Submission Service
       ↓
   Docker Python Runner (isolated container)
 ```
+
+The frontend uses EJS templates rendered server-side. All pages are served directly from the Express backend on port 3000.
 
 ## Next Steps
 

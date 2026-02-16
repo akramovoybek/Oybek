@@ -1,20 +1,22 @@
 # Contest Platform
 
-A local-network competitive programming platform built with Node.js, Express, MySQL, and Docker.
+A local-network competitive programming platform built with Node.js, Express, EJS, MySQL, and Docker.
 
 ## Architecture
 
 ```
 Client (Browser)
       ↓
-  Express API (port 3000)
+  Express + EJS (port 3000)  ← server-rendered pages
       ↓
-  MySQL Database (port 3306)
+  MySQL Database (port 3306, host port 3307)
       ↓
   Submission Service
       ↓
   Docker Python Runner (isolated container)
 ```
+
+The frontend uses **EJS templates** rendered server-side by Express. All pages (home, problems, contests, admin panel, etc.) are served directly from the backend on port 3000.
 
 ## Prerequisites
 
@@ -23,27 +25,39 @@ Client (Browser)
 
 ## Quick Start
 
-### 1. Build the Python runner image
+### Option A: Using the startup script
+
+```bash
+./start.sh
+```
+
+This builds the runner image, starts all Docker services, and waits for the backend to be ready.
+
+### Option B: Manual steps
+
+#### 1. Build the Python runner image
 
 ```bash
 docker build -t contest-runner ./docker/runner
 ```
 
-### 2. Start all services
+#### 2. Start all services
 
 ```bash
 docker-compose up --build
 ```
 
-### 3. Seed the database
+#### 3. Seed the database
 
 Once the backend is running, open a new terminal:
 
 ```bash
+./seed.sh
+# or manually:
 docker exec contest-backend node seeds/seed.js
 ```
 
-### 4. Access the platform
+### Access the platform
 
 - **Local:** http://localhost:3000
 - **LAN:** http://<your-local-ip>:3000
@@ -187,6 +201,7 @@ The code runner containers are isolated with:
 │   │   │   ├── contests.js     # Admin contest management
 │   │   │   ├── problems.js     # Admin problem management
 │   │   │   └── topics.js       # Admin topic management
+│   │   ├── pages.js            # EJS page rendering routes
 │   │   ├── auth.js             # Login / Register
 │   │   ├── contests.js         # Public contest routes
 │   │   ├── problems.js         # Public problem routes
@@ -197,7 +212,31 @@ The code runner containers are isolated with:
 │   │   └── codeRunner.js       # Docker code execution
 │   ├── utils/
 │   │   └── syncDb.js           # Force-sync database
+│   ├── views/                  # EJS templates
+│   │   ├── pages/              # User-facing pages
+│   │   │   ├── home.ejs
+│   │   │   ├── login.ejs
+│   │   │   ├── register.ejs
+│   │   │   ├── problems.ejs
+│   │   │   ├── problem-detail.ejs
+│   │   │   ├── contests.ejs
+│   │   │   ├── contest-detail.ejs
+│   │   │   └── user-profile.ejs
+│   │   ├── admin/              # Admin panel pages
+│   │   │   ├── layout.ejs
+│   │   │   ├── topics.ejs
+│   │   │   ├── problems.ejs
+│   │   │   ├── problem-form.ejs
+│   │   │   ├── contests.ejs
+│   │   │   └── contest-form.ejs
+│   │   └── partials/           # Shared layout partials
+│   │       ├── header.ejs
+│   │       ├── navbar.ejs
+│   │       └── footer.ejs
 │   └── app.js                  # Express entry point
+├── start.sh                    # Full startup script
+├── stop.sh                     # Shutdown script
+├── seed.sh                     # Database seeding script
 ├── docker-compose.yml
 ├── Dockerfile                  # Backend image
 ├── package.json
@@ -207,6 +246,8 @@ The code runner containers are isolated with:
 ## Stopping
 
 ```bash
+./stop.sh
+# or manually:
 docker-compose down
 ```
 
