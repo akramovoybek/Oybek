@@ -1,0 +1,117 @@
+<% const activeTab = 'contests'; %>
+<%- include('layout') %>
+
+<%
+  const isEdit = typeof contest !== 'undefined' && contest;
+  const f = isEdit ? contest : { title: '', description: '', start_time: '', end_time: '' };
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all";
+  function toDatetimeLocal(d) {
+    if (!d) return '';
+    return new Date(d).toISOString().slice(0, 16);
+  }
+%>
+
+<div>
+  <a href="/admin/contests" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+
+  <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= isEdit ? 'Edit Contest' : 'New Contest' %></h2>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"><%= error %></div>
+  <% } %>
+
+  <form action="<%= isEdit ? '/admin/contests/' + contest.id + '/edit' : '/admin/contests/new' %>" method="POST" class="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 mb-6">
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+      <input name="title" value="<%= f.title %>" required class="<%= inputClass %>">
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+      <textarea name="description" rows="3" class="<%= inputClass %>"><%= f.description || '' %></textarea>
+    </div>
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Start Time</label>
+        <input name="start_time" type="datetime-local" value="<%= toDatetimeLocal(f.start_time) %>" required class="<%= inputClass %>">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">End Time</label>
+        <input name="end_time" type="datetime-local" value="<%= toDatetimeLocal(f.end_time) %>" required class="<%= inputClass %>">
+      </div>
+    </div>
+    <div class="pt-2">
+      <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Contest
+      </button>
+    </div>
+  </form>
+
+  <!-- Contest Problems - only in edit mode -->
+  <% if (isEdit) { %>
+    <div class="bg-white rounded-2xl border border-gray-100 p-6" x-data="{ selectedProblemId: '' }">
+      <h3 class="font-semibold text-gray-900 mb-4">Contest Problems (<%= contest.problems ? contest.problems.length : 0 %>)</h3>
+
+      <% if (contest.problems && contest.problems.length > 0) { %>
+        <div class="space-y-2 mb-4">
+          <% contest.problems.forEach(function(p, i) { %>
+            <div class="flex items-center justify-between p-3 rounded-xl bg-gray-50 border border-gray-100" id="cp-<%= p.id %>">
+              <div class="flex items-center gap-3">
+                <span class="text-sm font-mono text-gray-400"><%= String.fromCharCode(65 + i) %></span>
+                <span class="text-sm font-medium text-gray-900"><%= p.title %></span>
+              </div>
+              <button onclick="removeProblem(<%= contest.id %>, <%= p.id %>)" class="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+              </button>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <div class="flex gap-3">
+        <select x-model="selectedProblemId" class="<%= inputClass %>">
+          <option value="">Select a problem...</option>
+          <% allProblems.forEach(function(p) { %>
+            <% const alreadyAdded = contest.problems && contest.problems.some(cp => cp.id === p.id); %>
+            <% if (!alreadyAdded) { %>
+              <option value="<%= p.id %>"><%= p.title %></option>
+            <% } %>
+          <% }); %>
+        </select>
+        <button type="button" @click="addContestProblem(selectedProblemId)" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-all whitespace-nowrap">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add
+        </button>
+      </div>
+    </div>
+
+    <script>
+      async function addContestProblem(problemId) {
+        if (!problemId) return;
+        try {
+          await api.post('/admin/contests/<%= contest.id %>/problems', { problem_id: parseInt(problemId) });
+          toast.success('Problem added');
+          location.reload();
+        } catch (err) {
+          toast.error(err.message || 'Failed');
+        }
+      }
+
+      async function removeProblem(contestId, problemId) {
+        try {
+          await api.delete('/admin/contests/' + contestId + '/problems/' + problemId);
+          document.getElementById('cp-' + problemId).remove();
+          toast.success('Removed');
+        } catch (err) {
+          toast.error('Remove failed');
+        }
+      }
+    </script>
+  <% } %>
+</div>
+
+</div>
+<%- include('../partials/footer') %>

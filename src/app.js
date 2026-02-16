@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const cookieParser = require('cookie-parser');
 const sequelize = require('./config/database');
 const errorHandler = require('./middleware/errorHandler');
 const authenticate = require('./middleware/auth');
@@ -21,45 +22,45 @@ const topicRoutes = require('./routes/topics');
 const adminTopicRoutes = require('./routes/admin/topics');
 const adminProblemRoutes = require('./routes/admin/problems');
 const adminContestRoutes = require('./routes/admin/contests');
+const pageRoutes = require('./routes/pages');
 
 const app = express();
+
+// View engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
+
+// Static files
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Public routes
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/problems', problemRoutes);
 app.use('/api/contests', contestRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/topics', topicRoutes);
 
-// Authenticated routes
+// Authenticated API routes
 app.use('/api/submissions', submissionRoutes);
 
-// Admin routes
+// Admin API routes
 app.use('/api/admin/topics', authenticate, isAdmin, adminTopicRoutes);
 app.use('/api/admin/problems', authenticate, isAdmin, adminProblemRoutes);
 app.use('/api/admin/contests', authenticate, isAdmin, adminContestRoutes);
 
-// Serve frontend static files
-const frontendDist = path.join(__dirname, '..', 'frontend', 'dist');
-app.use(express.static(frontendDist));
-
-// SPA catch-all: serve index.html for any non-API route
-app.get('*', (req, res, next) => {
-  if (req.path.startsWith('/api')) {
-    return next();
-  }
-  res.sendFile(path.join(frontendDist, 'index.html'));
-});
+// EJS page routes
+app.use('/', pageRoutes);
 
 // Error handler
 app.use(errorHandler);

@@ -1,0 +1,58 @@
+<nav class="bg-white border-b border-gray-100 sticky top-0 z-50" x-data="{ mobileOpen: false }">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
+      <a href="/" class="flex items-center gap-2 text-gray-900 font-bold text-xl hover:text-indigo-600 transition-colors">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg>
+        <span>CodeArena</span>
+      </a>
+
+      <div class="hidden md:flex items-center gap-1">
+        <a href="/problems" class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-sm font-medium">Problems</a>
+        <a href="/contests" class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-sm font-medium">Contests</a>
+      </div>
+
+      <div class="hidden md:flex items-center gap-2">
+        <% if (user) { %>
+          <% if (user.role === 'ADMIN') { %>
+            <a href="/admin/problems" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-amber-700 bg-amber-50 hover:bg-amber-100 transition-all text-sm font-medium">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></svg>
+              Admin
+            </a>
+          <% } %>
+          <a href="/users/<%= user.username %>" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-sm font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <%= user.username %>
+          </a>
+          <a href="/logout" class="flex items-center gap-1.5 px-3 py-2 rounded-lg text-gray-500 hover:text-red-600 hover:bg-red-50 transition-all text-sm font-medium">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+          </a>
+        <% } else { %>
+          <a href="/login" class="px-4 py-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-all text-sm font-medium">Sign In</a>
+          <a href="/register" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-all text-sm font-medium">Sign Up</a>
+        <% } %>
+      </div>
+
+      <button @click="mobileOpen = !mobileOpen" class="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-50">
+        <svg x-show="!mobileOpen" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        <svg x-show="mobileOpen" x-cloak xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div x-show="mobileOpen" x-cloak class="md:hidden border-t border-gray-100 bg-white px-4 py-3 space-y-1">
+    <a href="/problems" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">Problems</a>
+    <a href="/contests" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">Contests</a>
+    <div class="border-t border-gray-100 pt-2 mt-2">
+      <% if (user) { %>
+        <% if (user.role === 'ADMIN') { %>
+          <a href="/admin/problems" class="block px-3 py-2 rounded-lg text-amber-700 hover:bg-amber-50 text-sm font-medium">Admin Panel</a>
+        <% } %>
+        <a href="/users/<%= user.username %>" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">Profile</a>
+        <a href="/logout" class="block px-3 py-2 rounded-lg text-red-600 hover:bg-red-50 text-sm font-medium">Logout</a>
+      <% } else { %>
+        <a href="/login" class="block px-3 py-2 rounded-lg text-gray-600 hover:bg-gray-50 text-sm font-medium">Sign In</a>
+        <a href="/register" class="block px-3 py-2 rounded-lg bg-indigo-600 text-white text-center text-sm font-medium">Sign Up</a>
+      <% } %>
+    </div>
+  </div>
+</nav>
