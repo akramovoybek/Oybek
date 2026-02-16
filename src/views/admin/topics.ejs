@@ -1,0 +1,139 @@
+<% const activeTab = 'topics'; %>
+<%- include('layout') %>
+
+<%
+  const inputClass = "w-full px-3 py-2 rounded-lg border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent";
+%>
+
+<div x-data="topicsManager()">
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900">Topics</h2>
+    <button @click="showNew = !showNew" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Topic
+    </button>
+  </div>
+
+  <!-- New topic form -->
+  <div x-show="showNew" x-cloak class="bg-white rounded-2xl border border-gray-100 p-4 mb-4 flex gap-3 items-end">
+    <div class="flex-1">
+      <label class="block text-xs text-gray-500 mb-1">Name</label>
+      <input x-model="newForm.name" class="<%= inputClass %>" placeholder="Topic name">
+    </div>
+    <div class="flex-1">
+      <label class="block text-xs text-gray-500 mb-1">Description</label>
+      <input x-model="newForm.description" class="<%= inputClass %>" placeholder="Optional description">
+    </div>
+    <button @click="createTopic()" class="px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700">Create</button>
+    <button @click="showNew = false" class="px-3 py-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-50">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Name</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase hidden sm:table-cell">Description</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Problems</th>
+          <th class="px-6 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <% if (topics.length === 0) { %>
+          <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 text-sm">No topics</td></tr>
+        <% } else { %>
+          <% topics.forEach(function(t) { %>
+            <tr class="hover:bg-gray-50/50" x-data="{ editing: false, editName: '<%= t.name %>', editDesc: '<%= (t.description || '').replace(/'/g, "\\'") %>' }">
+              <td class="px-6 py-3 text-sm text-gray-400 font-mono"><%= t.id %></td>
+              <td class="px-6 py-3">
+                <template x-if="editing">
+                  <input x-model="editName" class="<%= inputClass %>">
+                </template>
+                <template x-if="!editing">
+                  <span class="text-sm font-medium text-gray-900"><%= t.name %></span>
+                </template>
+              </td>
+              <td class="px-6 py-3 hidden sm:table-cell">
+                <template x-if="editing">
+                  <input x-model="editDesc" class="<%= inputClass %>">
+                </template>
+                <template x-if="!editing">
+                  <span class="text-sm text-gray-500"><%= t.description || '-' %></span>
+                </template>
+              </td>
+              <td class="px-6 py-3 text-sm text-gray-500"><%= t.problem_count || 0 %></td>
+              <td class="px-6 py-3">
+                <div class="flex items-center gap-2 justify-end">
+                  <template x-if="editing">
+                    <div class="flex gap-1">
+                      <button @click="updateTopic(<%= t.id %>, editName, editDesc); editing = false" class="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                      </button>
+                      <button @click="editing = false" class="p-1.5 rounded-lg text-gray-400 hover:bg-gray-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                      </button>
+                    </div>
+                  </template>
+                  <template x-if="!editing">
+                    <div class="flex gap-1">
+                      <button @click="editing = true" class="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                      </button>
+                      <button @click="deleteTopic(<%= t.id %>)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                      </button>
+                    </div>
+                  </template>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  function topicsManager() {
+    return {
+      showNew: false,
+      newForm: { name: '', description: '' },
+      async createTopic() {
+        if (!this.newForm.name.trim()) return;
+        try {
+          await api.post('/admin/topics', this.newForm);
+          toast.success('Topic created');
+          location.reload();
+        } catch (err) {
+          toast.error(err.message || 'Create failed');
+        }
+      },
+      async updateTopic(id, name, description) {
+        try {
+          await api.put('/admin/topics/' + id, { name, description });
+          toast.success('Updated');
+          location.reload();
+        } catch (err) {
+          toast.error(err.message || 'Update failed');
+        }
+      },
+      async deleteTopic(id) {
+        if (!confirm('Delete this topic?')) return;
+        try {
+          await api.delete('/admin/topics/' + id);
+          toast.success('Deleted');
+          location.reload();
+        } catch (err) {
+          toast.error(err.message || 'Delete failed');
+        }
+      }
+    };
+  }
+</script>
+
+</div>
+<%- include('../partials/footer') %>

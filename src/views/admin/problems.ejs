@@ -1,0 +1,76 @@
+<% const activeTab = 'problems'; %>
+<%- include('layout') %>
+
+<%
+  const diffColor = {
+    EASY: 'text-emerald-600 bg-emerald-50',
+    MEDIUM: 'text-amber-600 bg-amber-50',
+    HARD: 'text-red-600 bg-red-50',
+  };
+%>
+
+<div>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-semibold text-gray-900">Problems</h2>
+    <a href="/admin/problems/new" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Problem
+    </a>
+  </div>
+
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">ID</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Title</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Difficulty</th>
+          <th class="text-left px-6 py-3 text-xs font-semibold text-gray-500 uppercase">Testcases</th>
+          <th class="px-6 py-3"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <% if (problems.length === 0) { %>
+          <tr><td colspan="5" class="px-6 py-12 text-center text-gray-400 text-sm">No problems</td></tr>
+        <% } else { %>
+          <% problems.forEach(function(p) { %>
+            <tr class="hover:bg-gray-50/50">
+              <td class="px-6 py-3 text-sm text-gray-400 font-mono"><%= p.id %></td>
+              <td class="px-6 py-3 text-sm font-medium text-gray-900"><%= p.title %></td>
+              <td class="px-6 py-3">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-lg <%= diffColor[p.difficulty] || '' %>"><%= p.difficulty %></span>
+              </td>
+              <td class="px-6 py-3 text-sm text-gray-500"><%= p.testcases ? p.testcases.length : '-' %></td>
+              <td class="px-6 py-3">
+                <div class="flex items-center gap-2 justify-end">
+                  <a href="/admin/problems/<%= p.id %>/edit" class="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  </a>
+                  <button onclick="deleteProblem(<%= p.id %>)" class="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function deleteProblem(id) {
+    if (!confirm('Delete this problem?')) return;
+    try {
+      await api.delete('/admin/problems/' + id);
+      toast.success('Deleted');
+      location.reload();
+    } catch (err) {
+      toast.error(err.message || 'Delete failed');
+    }
+  }
+</script>
+
+</div>
+<%- include('../partials/footer') %>

@@ -1,0 +1,77 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar') %>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-8">
+    <h1 class="text-2xl font-bold text-gray-900">Problems</h1>
+    <p class="text-gray-500 text-sm mt-1">Practice and improve your skills</p>
+  </div>
+
+  <!-- Filters -->
+  <form method="GET" action="/problems" class="flex flex-col sm:flex-row gap-3 mb-6">
+    <div class="relative flex-1">
+      <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" name="search" placeholder="Search problems..." value="<%= typeof search !== 'undefined' ? search : '' %>" class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+    </div>
+    <select name="difficulty" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <option value="">All Difficulties</option>
+      <option value="EASY" <%= typeof difficulty !== 'undefined' && difficulty === 'EASY' ? 'selected' : '' %>>Easy</option>
+      <option value="MEDIUM" <%= typeof difficulty !== 'undefined' && difficulty === 'MEDIUM' ? 'selected' : '' %>>Medium</option>
+      <option value="HARD" <%= typeof difficulty !== 'undefined' && difficulty === 'HARD' ? 'selected' : '' %>>Hard</option>
+    </select>
+    <select name="topic_id" onchange="this.form.submit()" class="px-4 py-2.5 rounded-xl border border-gray-200 bg-white text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+      <option value="">All Topics</option>
+      <% topics.forEach(function(t) { %>
+        <option value="<%= t.id %>" <%= typeof topic_id !== 'undefined' && String(topic_id) === String(t.id) ? 'selected' : '' %>><%= t.name %></option>
+      <% }); %>
+    </select>
+  </form>
+
+  <!-- Table -->
+  <div class="bg-white rounded-2xl border border-gray-100 overflow-hidden">
+    <table class="w-full">
+      <thead>
+        <tr class="border-b border-gray-100">
+          <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">#</th>
+          <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Title</th>
+          <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden sm:table-cell">Topic</th>
+          <th class="text-left px-6 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">Difficulty</th>
+          <th class="px-6 py-3.5"></th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-gray-50">
+        <% if (problems.length === 0) { %>
+          <tr>
+            <td colspan="5" class="px-6 py-16 text-center text-gray-400 text-sm">No problems found</td>
+          </tr>
+        <% } else { %>
+          <% problems.forEach(function(p, i) { %>
+            <tr class="hover:bg-gray-50/50 transition-colors">
+              <td class="px-6 py-4 text-sm text-gray-400 font-mono"><%= i + 1 %></td>
+              <td class="px-6 py-4">
+                <a href="/problems/<%= p.id %>" class="text-sm font-medium text-gray-900 hover:text-indigo-600 transition-colors"><%= p.title %></a>
+              </td>
+              <td class="px-6 py-4 hidden sm:table-cell">
+                <% if (p.topic) { %>
+                  <span class="text-xs font-medium text-gray-500 bg-gray-100 px-2.5 py-1 rounded-lg"><%= p.topic.name %></span>
+                <% } %>
+              </td>
+              <td class="px-6 py-4">
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-lg <%= p.difficulty === 'EASY' ? 'text-emerald-600 bg-emerald-50' : p.difficulty === 'MEDIUM' ? 'text-amber-600 bg-amber-50' : 'text-red-600 bg-red-50' %>">
+                  <%= p.difficulty %>
+                </span>
+              </td>
+              <td class="px-6 py-4 text-right">
+                <a href="/problems/<%= p.id %>" class="text-gray-400 hover:text-indigo-600 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                </a>
+              </td>
+            </tr>
+          <% }); %>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../partials/footer') %>

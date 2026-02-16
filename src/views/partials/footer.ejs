@@ -1,0 +1,51 @@
+  <script>
+    // Toast notification system
+    window.toast = {
+      show(message, type = 'success') {
+        const container = document.getElementById('toast-container') || (() => {
+          const div = document.createElement('div');
+          div.id = 'toast-container';
+          div.className = 'fixed top-4 right-4 z-[100] space-y-2';
+          document.body.appendChild(div);
+          return div;
+        })();
+        const toast = document.createElement('div');
+        toast.className = `px-4 py-3 rounded-xl text-sm font-medium shadow-lg border transition-all transform translate-x-0 ${
+          type === 'success' ? 'bg-white text-emerald-700 border-emerald-200' :
+          type === 'error' ? 'bg-white text-red-700 border-red-200' :
+          'bg-white text-gray-700 border-gray-200'
+        }`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => { toast.remove(); }, 3000);
+      },
+      success(msg) { this.show(msg, 'success'); },
+      error(msg) { this.show(msg, 'error'); },
+    };
+
+    // Helper for API calls from client-side
+    window.api = {
+      getToken() { return document.cookie.split('; ').find(r => r.startsWith('token='))?.split('=')[1] || ''; },
+      async fetch(url, options = {}) {
+        const token = this.getToken();
+        const res = await fetch('/api' + url, {
+          ...options,
+          headers: {
+            'Content-Type': 'application/json',
+            ...(token ? { 'Authorization': 'Bearer ' + token } : {}),
+            ...options.headers,
+          },
+          body: options.body ? JSON.stringify(options.body) : undefined,
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+        return data;
+      },
+      get(url) { return this.fetch(url); },
+      post(url, body) { return this.fetch(url, { method: 'POST', body }); },
+      put(url, body) { return this.fetch(url, { method: 'PUT', body }); },
+      delete(url) { return this.fetch(url, { method: 'DELETE' }); },
+    };
+  </script>
+</body>
+</html>

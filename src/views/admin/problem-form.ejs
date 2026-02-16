@@ -1,0 +1,170 @@
+<% const activeTab = 'problems'; %>
+<%- include('layout') %>
+
+<%
+  const isEdit = typeof problem !== 'undefined' && problem;
+  const f = isEdit ? problem : { title: '', description: '', input_description: '', output_description: '', difficulty: 'EASY', topic_id: '', time_limit: 2, memory_limit: 256 };
+  const inputClass = "w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-white text-gray-900 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all";
+%>
+
+<div>
+  <a href="/admin/problems" class="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4">
+    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+
+  <h2 class="text-lg font-semibold text-gray-900 mb-4"><%= isEdit ? 'Edit Problem' : 'New Problem' %></h2>
+
+  <% if (typeof error !== 'undefined' && error) { %>
+    <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm"><%= error %></div>
+  <% } %>
+
+  <form action="<%= isEdit ? '/admin/problems/' + problem.id + '/edit' : '/admin/problems/new' %>" method="POST" class="bg-white rounded-2xl border border-gray-100 p-6 space-y-4 mb-6">
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Title</label>
+        <input name="title" value="<%= f.title %>" required class="<%= inputClass %>">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Difficulty</label>
+        <select name="difficulty" class="<%= inputClass %>">
+          <option value="EASY" <%= f.difficulty === 'EASY' ? 'selected' : '' %>>Easy</option>
+          <option value="MEDIUM" <%= f.difficulty === 'MEDIUM' ? 'selected' : '' %>>Medium</option>
+          <option value="HARD" <%= f.difficulty === 'HARD' ? 'selected' : '' %>>Hard</option>
+        </select>
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-sm font-medium text-gray-700 mb-1.5">Description</label>
+      <textarea name="description" rows="4" required class="<%= inputClass %>"><%= f.description %></textarea>
+    </div>
+
+    <div class="grid md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Input Description</label>
+        <textarea name="input_description" rows="3" class="<%= inputClass %>"><%= f.input_description || '' %></textarea>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Output Description</label>
+        <textarea name="output_description" rows="3" class="<%= inputClass %>"><%= f.output_description || '' %></textarea>
+      </div>
+    </div>
+
+    <div class="grid md:grid-cols-3 gap-4">
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Topic</label>
+        <select name="topic_id" class="<%= inputClass %>">
+          <option value="">None</option>
+          <% topics.forEach(function(t) { %>
+            <option value="<%= t.id %>" <%= String(f.topic_id) === String(t.id) ? 'selected' : '' %>><%= t.name %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Time Limit (s)</label>
+        <input name="time_limit" type="number" value="<%= f.time_limit %>" min="1" class="<%= inputClass %>">
+      </div>
+      <div>
+        <label class="block text-sm font-medium text-gray-700 mb-1.5">Memory Limit (MB)</label>
+        <input name="memory_limit" type="number" value="<%= f.memory_limit %>" min="1" class="<%= inputClass %>">
+      </div>
+    </div>
+
+    <div class="pt-2">
+      <button type="submit" class="inline-flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-sm font-medium hover:bg-indigo-700 transition-all">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save Problem
+      </button>
+    </div>
+  </form>
+
+  <!-- Testcases section - only in edit mode -->
+  <% if (isEdit) { %>
+    <div class="bg-white rounded-2xl border border-gray-100 p-6" x-data="testcaseManager()">
+      <h3 class="font-semibold text-gray-900 mb-4">Testcases (<%= problem.testcases ? problem.testcases.length : 0 %>)</h3>
+
+      <% if (problem.testcases && problem.testcases.length > 0) { %>
+        <div class="space-y-2 mb-4">
+          <% problem.testcases.forEach(function(tc) { %>
+            <div class="flex items-start justify-between p-3 rounded-xl bg-gray-50 border border-gray-100" id="tc-<%= tc.id %>">
+              <div class="grid grid-cols-2 gap-4 flex-1 min-w-0">
+                <div>
+                  <span class="text-xs font-semibold text-gray-400">Input</span>
+                  <pre class="text-xs font-mono text-gray-700 mt-1 whitespace-pre-wrap"><%= tc.input %></pre>
+                </div>
+                <div>
+                  <span class="text-xs font-semibold text-gray-400">Expected Output</span>
+                  <pre class="text-xs font-mono text-gray-700 mt-1 whitespace-pre-wrap"><%= tc.expected_output %></pre>
+                </div>
+              </div>
+              <div class="flex items-center gap-2 ml-3">
+                <% if (tc.is_sample) { %>
+                  <span class="text-xs bg-blue-50 text-blue-600 px-2 py-0.5 rounded">Sample</span>
+                <% } %>
+                <button onclick="deleteTestcase(<%= problem.id %>, <%= tc.id %>)" class="p-1 rounded text-gray-400 hover:text-red-600 hover:bg-red-50">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </div>
+            </div>
+          <% }); %>
+        </div>
+      <% } %>
+
+      <div class="border-t border-gray-100 pt-4">
+        <h4 class="text-sm font-medium text-gray-700 mb-3">Add Testcase</h4>
+        <div class="grid md:grid-cols-2 gap-3 mb-3">
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Input</label>
+            <textarea x-model="newTc.input" rows="3" class="<%= inputClass %> font-mono text-xs"></textarea>
+          </div>
+          <div>
+            <label class="block text-xs text-gray-500 mb-1">Expected Output</label>
+            <textarea x-model="newTc.expected_output" rows="3" class="<%= inputClass %> font-mono text-xs"></textarea>
+          </div>
+        </div>
+        <div class="flex items-center gap-4">
+          <label class="flex items-center gap-2 text-sm text-gray-600">
+            <input type="checkbox" x-model="newTc.is_sample" class="rounded border-gray-300">
+            Sample testcase (visible to users)
+          </label>
+          <button type="button" @click="addTestcase()" class="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 text-white text-sm font-medium hover:bg-emerald-700 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Add
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function testcaseManager() {
+        return {
+          newTc: { input: '', expected_output: '', is_sample: false },
+          async addTestcase() {
+            if (!this.newTc.input && !this.newTc.expected_output) return;
+            try {
+              await api.post('/admin/problems/<%= problem.id %>/testcases', this.newTc);
+              toast.success('Testcase added');
+              location.reload();
+            } catch (err) {
+              toast.error(err.message || 'Failed to add testcase');
+            }
+          }
+        };
+      }
+
+      async function deleteTestcase(problemId, tcId) {
+        try {
+          await api.delete('/admin/problems/' + problemId + '/testcases/' + tcId);
+          document.getElementById('tc-' + tcId).remove();
+          toast.success('Deleted');
+        } catch (err) {
+          toast.error('Delete failed');
+        }
+      }
+    </script>
+  <% } %>
+</div>
+
+</div>
+<%- include('../partials/footer') %>
