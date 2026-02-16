@@ -1,16 +1,38 @@
-# React + Vite
+# Frontend (React + Vite) - Alternate UI
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+> **Note:** The primary frontend is now served via **EJS templates** from the Express backend on port 3000. This React/Vite SPA is an alternate frontend that can be used for development or as a future migration path.
 
-Currently, two official plugins are available:
+## Running the React Frontend
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+The React frontend runs as a separate dev server and proxies API requests to the backend.
 
-## React Compiler
+### Prerequisites
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Backend running on `http://localhost:3000`
 
-## Expanding the ESLint configuration
+### Setup
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The React frontend will be available at `http://localhost:5173`.
+
+### Available Scripts
+
+```bash
+npm run dev       # Development server with hot reload
+npm run build     # Build for production
+npm run preview   # Preview production build
+npm run lint      # Run ESLint
+```
+
+### Stack
+
+- React 19 + React Router 7
+- Vite (build tool)
+- TailwindCSS 4
+- CodeMirror 6 (code editor)
+- Axios (HTTP client)

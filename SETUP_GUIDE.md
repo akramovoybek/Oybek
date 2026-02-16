@@ -8,7 +8,6 @@ A comprehensive guide to set up and run the Contest Platform (Backend + Frontend
 - [Prerequisites](#prerequisites)
 - [Quick Start with Docker](#quick-start-with-docker)
 - [Local Development Setup](#local-development-setup)
-- [Frontend Setup](#frontend-setup)
 - [Testing the Platform](#testing-the-platform)
 - [Troubleshooting](#troubleshooting)
 - [Useful Commands](#useful-commands)
@@ -17,20 +16,21 @@ A comprehensive guide to set up and run the Contest Platform (Backend + Frontend
 
 The Contest Platform consists of:
 
-- **Backend**: Node.js/Express API (Port 3000)
-- **Frontend**: React + Vite (Port 5173)
-- **Database**: MySQL 8.0 (Port 3306/3307)
+- **Backend + Frontend**: Node.js/Express with EJS templates (Port 3000)
+- **Database**: MySQL 8.0 (Port 3306 internally, Port 3307 on host)
 - **Code Runner**: Docker-based Python execution environment
 
 ```
-Browser (Frontend) → Port 5173
+Browser → Port 3000
        ↓
-  Express API → Port 3000
+  Express + EJS (server-rendered pages)
        ↓
   MySQL Database → Port 3306
        ↓
   Docker Python Runner (isolated containers)
 ```
+
+The frontend uses EJS templates rendered server-side. All pages are served directly from the Express backend on port 3000 — no separate frontend server is needed.
 
 ## Prerequisites
 
@@ -168,25 +168,15 @@ This creates:
 - Sample problems with test cases
 - Sample contests
 
-### Step 6: Start the Frontend
-
-Open another terminal:
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-The frontend will start on `http://localhost:5173`
-
-### Step 7: Access the Platform
+### Step 6: Access the Platform
 
 Open your browser and navigate to:
 
 ```
-http://localhost:5173
+http://localhost:3000
 ```
+
+All pages are served directly by the Express backend using EJS templates.
 
 **Default Login Credentials:**
 
@@ -198,7 +188,7 @@ http://localhost:5173
 
 ## Local Development Setup
 
-If you prefer to run services locally without Docker.
+If you prefer to run the backend locally without Docker (you still need Docker for the code runner).
 
 ### Backend Setup (Local)
 
@@ -281,76 +271,9 @@ npm run dev
 npm start
 ```
 
-Backend will be available at `http://localhost:3000`
+The platform (backend + EJS frontend) will be available at `http://localhost:3000`
 
-### Frontend Setup (Local)
-
-1. **Navigate to Frontend Directory**
-
-```bash
-cd frontend
-```
-
-2. **Install Dependencies**
-
-```bash
-npm install
-```
-
-3. **Configure API Endpoint (Optional)**
-
-If your backend is not on `localhost:3000`, create `frontend/.env`:
-
-```env
-VITE_API_URL=http://localhost:3000
-```
-
-4. **Start Development Server**
-
-```bash
-npm run dev
-```
-
-Frontend will be available at `http://localhost:5173`
-
-5. **Build for Production**
-
-```bash
-npm run build
-npm run preview
-```
-
-## Frontend Setup
-
-### Environment Variables
-
-Create `frontend/.env.local` (optional):
-
-```env
-# API Base URL (default: http://localhost:3000)
-VITE_API_URL=http://localhost:3000
-
-# For production
-# VITE_API_URL=https://your-api-domain.com
-```
-
-### Available Scripts
-
-```bash
-# Development server with hot reload
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run ESLint
-npm run lint
-```
-
-### Frontend Features
+### Platform Features
 
 - User authentication (login/register)
 - Problem browsing and solving
@@ -423,9 +346,9 @@ brew install jq
 sudo apt install jq
 ```
 
-### 3. Test Frontend
+### 3. Test the Platform
 
-1. Open `http://localhost:5173`
+1. Open `http://localhost:3000`
 2. Click "Login"
 3. Enter credentials (alice / user123)
 4. Browse problems
@@ -443,7 +366,7 @@ sudo apt install jq
 # Check what's using the port
 lsof -i :3000  # Backend
 lsof -i :3307  # MySQL
-lsof -i :5173  # Frontend
+lsof -i :5173  # Frontend (if using React dev server)
 
 # Kill the process
 kill -9 <PID>
@@ -504,33 +427,14 @@ docker logs contest-backend
 docker exec contest-backend node seeds/seed.js
 ```
 
-### Frontend Issues
+### Frontend / Page Issues
 
-**Issue: API calls failing**
+**Issue: Pages not rendering**
 
 1. Check backend is running: `curl http://localhost:3000/api/problems`
-2. Check CORS settings in backend
-3. Verify API URL in frontend code
+2. Check backend logs for EJS template errors
+3. Verify EJS views exist in `src/views/`
 4. Check browser console for errors
-
-**Issue: Module not found errors**
-
-```bash
-# Clear node_modules and reinstall
-cd frontend
-rm -rf node_modules package-lock.json
-npm install
-```
-
-**Issue: Build fails**
-
-```bash
-# Clear cache
-rm -rf frontend/node_modules/.vite
-
-# Rebuild
-npm run build
-```
 
 ### Code Execution Issues
 
@@ -617,24 +521,17 @@ npm run db:sync
 npm run db:seed
 ```
 
-### Frontend Commands
+### Startup/Shutdown Scripts
 
 ```bash
-# Install dependencies
-cd frontend
-npm install
+# Start all services (Docker + backend)
+./start.sh
 
-# Start development server
-npm run dev
+# Stop all services
+./stop.sh
 
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-
-# Run linter
-npm run lint
+# Seed the database
+./seed.sh
 ```
 
 ### Git Commands
@@ -663,19 +560,9 @@ Oybek/
 ├── docker/
 │   └── runner/              # Python runner Docker image
 │       └── Dockerfile
-├── frontend/                # React frontend
-│   ├── public/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── pages/
-│   │   ├── services/
-│   │   ├── App.jsx
-│   │   └── main.jsx
-│   ├── package.json
-│   └── vite.config.js
 ├── seeds/
 │   └── seed.js              # Database seeder
-├── src/                     # Backend source
+├── src/                     # Backend + frontend source
 │   ├── config/
 │   │   ├── constants.js
 │   │   └── database.js
@@ -690,13 +577,21 @@ Oybek/
 │   │   └── ...
 │   ├── routes/
 │   │   ├── admin/
+│   │   ├── pages.js         # EJS page rendering
 │   │   ├── auth.js
 │   │   ├── problems.js
 │   │   ├── submissions.js
 │   │   └── ...
 │   ├── services/
 │   │   └── codeRunner.js
+│   ├── views/               # EJS templates
+│   │   ├── pages/           # User-facing pages
+│   │   ├── admin/           # Admin panel pages
+│   │   └── partials/        # Shared layout partials
 │   └── app.js               # Express entry point
+├── start.sh                 # Full startup script
+├── stop.sh                  # Shutdown script
+├── seed.sh                  # Database seeding script
 ├── .env.example             # Environment template
 ├── docker-compose.yml       # Docker Compose config
 ├── Dockerfile               # Backend Dockerfile
@@ -718,7 +613,7 @@ Oybek/
    - Add test cases
 
 3. **Customize**
-   - Modify frontend styling
+   - Modify EJS templates in `src/views/`
    - Add new features
    - Configure execution limits
    - Add more programming languages
@@ -770,22 +665,17 @@ docker system prune -a
 docker volume prune
 
 # Remove node_modules
-rm -rf node_modules frontend/node_modules
-rm -rf package-lock.json frontend/package-lock.json
+rm -rf node_modules package-lock.json
 
 # Reinstall everything
 npm install
-cd frontend && npm install && cd ..
 
 # Rebuild Docker images
 docker build -t contest-runner ./docker/runner
 docker-compose up --build
 
-# Reseed database
+# Reseed database (in a new terminal)
 docker exec contest-backend node seeds/seed.js
-
-# Restart frontend
-cd frontend && npm run dev
 ```
 
 ## Contributing
