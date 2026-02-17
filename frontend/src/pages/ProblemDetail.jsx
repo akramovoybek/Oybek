@@ -45,7 +45,7 @@ export default function ProblemDetail() {
 
     if (user) {
       api.get('/submissions', { params: { problem_id: id } })
-        .then((res) => setSubmissions(res.data))
+        .then((res) => setSubmissions(res.data.submissions))
         .catch(() => {});
     }
   }, [id, user]);
@@ -63,15 +63,16 @@ export default function ProblemDetail() {
         code,
         language: 'python',
       });
-      setResult(res.data);
-      if (res.data.verdict === 'ACCEPTED') {
+      const submission = res.data.submission;
+      setResult(submission);
+      if (submission.verdict === 'ACCEPTED') {
         toast.success('Accepted!');
       } else {
-        toast.error(verdictLabel[res.data.verdict] || res.data.verdict);
+        toast.error(verdictLabel[submission.verdict] || submission.verdict);
       }
       // Refresh submissions
       api.get('/submissions', { params: { problem_id: id } })
-        .then((r) => setSubmissions(r.data))
+        .then((r) => setSubmissions(r.data.submissions))
         .catch(() => {});
     } catch (err) {
       toast.error(err.response?.data?.error || 'Submission failed');
